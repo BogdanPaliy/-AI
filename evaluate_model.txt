@@ -1,0 +1,66 @@
+scripts/evaluate_model.py
+
+import os
+from sklearn.metrics import classification_report
+
+from src.utils import helpers
+from src.visualization.result_visualizer import ResultVisualizer
+from src.modeling.feature_selector import FeatureSelector
+
+DATA_PATH = "data/processed/cleaned_dataset.csv"
+MODEL_PATH = "models/confidential_classifier.pkl"
+VECTORIZER_PATH = "models/confidential_classifier_vectorizer.pkl"
+REPORTS_DIR = "reports/visualizations"
+TEXT_COLUMN = "text"
+LABEL_COLUMN = "label"
+
+
+def main():
+    logger = helpers.setup_logger(name="model_evaluator")
+    logger.info("===")
+
+    try:
+        df = helpers.load_and_clean_csv(DATA_PATH, text_column=TEXT_COLUMN, label_column=LABEL_COLUMN)
+    except Exception as e:
+        logger.error(f": {e}")
+        return
+
+    _, X_test, _, y_test = helpers.split_data(df)
+
+    try:
+        model = helpers.load_model(MODEL_PATH)
+        vectorizer = helpers.load_model(VECTORIZER_PATH)
+        logger.info("Модель і векторизатор успішно завантажені")
+    except Exception as e:
+        logger.error(f": {e}")
+        return
+
+    X_test_vec = vectorizer.transform(X_test)
+
+     selector = FeatureSelector()
+    _, X_test_sel = selector.select_features(None, None, X_test_vec)
+
+       y_pred = model.predict(X_test_sel)
+
+       print("=== Звіт класифікації ===")
+    print(classification_report(y_test, y_pred))
+
+    visualizer = ResultVisualizer(output_dir=REPORTS_DIR)
+    class_names = sorted(df[LABEL_COLUMN].unique())
+
+    visualizer.plot_confusion_matrix(y_test, y_pred, class_names)
+    visualizer.plot_classification_metrics(y_test, y_pred)
+
+    if hasattr(model, "feature_importances_"):
+        visualizer.plot_feature_importance(
+            feature_names=vectorizer.get_feature_names_out(),
+            importances=model.feature_importances_,
+            top_n=25
+        )
+
+    logger.info("===")
+
+
+if __name__ == "__main__":
+    main()
+

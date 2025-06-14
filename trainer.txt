@@ -1,0 +1,49 @@
+src/modeling/model_trainer.py
+
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from src.modeling.xgboost_predictor import XGBoostPredictor
+from config import settings
+import joblib
+import os
+def train_and_evaluate(X_train, y_train, X_val, y_val, save_model=True):
+    """
+    :param X_train
+    :param y_train
+    :param X_val
+    :param y_val
+    :param save_model
+    :return: trained model
+    """
+    print("[INFO] ...")
+    model = XGBoostPredictor()
+    model.train(X_train, y_train)
+    print("[INFO]")
+    y_pred = model.predict(X_val)
+    accuracy = accuracy_score(y_val, y_pred)
+    print(f"[RESULT] Accuracy: {accuracy:.4f}")
+
+    print("\n[CLASSIFICATION REPORT]")
+    print(classification_report(y_val, y_pred))
+
+    print("\n[CONFUSION MATRIX]")
+    print(confusion_matrix(y_val, y_pred))
+
+    if save_model:
+        model.save_model()
+    return model
+def evaluate_on_test(model, X_test, y_test):
+    """
+    :param model: XGBoostPredictor
+    :param X_test: Тестові ознаки
+    :param y_test: Тестові мітки
+    """
+    print("\n[INFO]:")
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"[RESULT] Test Accuracy: {accuracy:.4f}")
+
+    print("\n[CLASSIFICATION REPORT]")
+    print(classification_report(y_test, y_pred))
+
+    print("\n[CONFUSION MATRIX]")
+    print(confusion_matrix(y_test, y_pred))

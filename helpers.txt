@@ -1,0 +1,55 @@
+src/utils/helpers.py
+
+import os
+import pickle
+import re
+import string
+import datetime
+import logging
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+def setup_logger(name="info_classifier", log_dir="logs", level=logging.INFO):
+    os.makedirs(log_dir, exist_ok=True)
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    log_path = os.path.join(log_dir, f"{name}.log")
+    file_handler = logging.FileHandler(log_path)
+    formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
+
+def save_model(model, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'wb') as f:
+        pickle.dump(model, f)
+
+def load_model(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r"http\S+|www\S+|https\S+", '', text)  
+    text = re.sub(r"\@\w+|\'', text) 
+    text = re.sub(r"[^\w\s]", '', text)  
+    text = re.sub(r"\d+", '', text)  
+    text = re.sub(r"\s+", ' ', text).strip()
+    return text
+
+def load_and_clean_csv(path, text_column="text", label_column="label"):
+    df = pd.read_csv(path)
+    if text_column not in df.columns or label_column not in df.columns:
+        raise ValueError(f"CSV '{text_column}' і '{label_column}'")
+    df[text_column] = df[text_column].astype(str).apply(clean_text)
+    return df[[text_column, label_column]]
+
+def split_data(df, test_size=0.2, random_state=42):
+    return train_test_split(df['text'], df['label'], test_size=test_size, random_state=random_state)
+
+def get_timestamp():
+    return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+

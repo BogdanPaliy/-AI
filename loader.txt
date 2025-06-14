@@ -1,0 +1,40 @@
+src/data_processing/data_loader.py
+
+import pandas as pd
+import os
+from config import settings
+
+def load_data(file_path=None)
+    """
+    :param file_path 
+    :return
+    """
+    if file_path is None:
+        file_path = settings.DATA_PATH
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f": {file_path}")
+
+    try:
+        df = pd.read_csv(file_path)
+        print(f"[INFO] {file_path}")
+    except Exception as e:
+        raise RuntimeError(f"[ERROR]: {e}")
+
+    return df
+
+def preview_data(df, rows=5):
+    """
+        :param df: DataFrame 
+    :param rows: 
+    """
+    print("\n[INFO]:")
+    print(df.head(rows))
+
+    print("\n[INFO]:", df.shape)
+
+    print("\n[INFO]:")
+    print(df.isnull().sum())
+
+    print("\n[INFO]:")
+    print(df.dtypes)

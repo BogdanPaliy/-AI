@@ -1,0 +1,47 @@
+src/recommendations/personalization.py
+
+import pandas as pd
+
+class PersonalizationEngine:
+    def __init__(self, user_profile_path="data/users/user_profiles.csv"):
+        self.user_profiles = self._load_user_profiles(user_profile_path)
+
+    def _load_user_profiles(self, path):
+        try:
+            df = pd.read_csv(path)
+            if 'user_id' not in df.columns or 'role' not in df.columns:
+                raise ValueError
+            return df.set_index('user_id').to_dict(orient='index')
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return {}
+
+    def get_recommendations(self, user_id, document_class, severity_level=None):
+        """
+        role = self.user_profiles.get(user_id, {}).get('role', 'default')
+
+        recommendations = []
+
+       if document_class == "confidential":
+            recommendations.append
+            recommendations.append
+            if severity_level == "high":
+                recommendations.append
+        elif document_class == "internal":
+            recommendations.append
+        elif document_class == "public":
+            recommendations.append
+
+        # Рольова персоналізація
+        if role == "admin":
+            recommendations.append
+        elif role == "legal":
+            recommendations.append
+        elif role == "it":
+            recommendations.append
+        elif role == "hr":
+            recommendations.append
+        else:
+            recommendations.append
+
+        return recommendations

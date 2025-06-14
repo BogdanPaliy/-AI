@@ -1,0 +1,59 @@
+src/modeling/xgboost_predictor.py 
+
+import joblib
+import os
+from xgboost import XGBClassifier
+from config import settings
+from config import model_config
+
+class XGBoostPredictor:
+    def __init__(self):
+        self.model = None
+
+    def train(self, X_train, y_train):
+        """
+        :param X_train: 
+        :param y_train: 
+        """
+        print("[INFO]")
+        self.model = XGBClassifier(**model_config.XGBOOST_PARAMS)
+        self.model.fit(X_train, y_train)
+        print("[INFO].")
+
+    def predict(self, X):
+        """
+        :param X: 
+        :return: 
+        """
+        if not self.model:
+            raise ValueError
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        """
+        :param X: Ознаки
+        :return: Ймовірності
+        """
+        if not self.model:
+            raise ValueError
+        return self.model.predict_proba(X)
+
+    def save_model(self, path=None):
+        """
+        :param path: 
+        """
+        if not self.model:
+            raise ValueError
+        path = path or settings.MODEL_PATH
+        joblib.dump(self.model, path)
+        print(f"[INFO] {path}")
+
+    def load_model(self, path=None):
+        """
+        :param path: settings.MODEL_PATH
+        """
+        path = path or settings.MODEL_PATH
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"{path}")
+        self.model = joblib.load(path)
+        print(f"[INFO] {path}")

@@ -1,0 +1,30 @@
+config/model_config.py 
+
+XGBOOST_PARAMS = {
+    "use_label_encoder": False,
+    "eval_metric": "logloss",
+    "n_estimators": 150,         
+    "max_depth": 6,             
+    "learning_rate": 0.1,       
+    "colsample_bytree": 0.8,     
+    "random_state": 42,
+    "scale_pos_weight": 1.5      
+}
+
+HYPERPARAMETER_GRID = {
+    "n_estimators": [100, 150, 200],
+    "max_depth": [4, 6, 8],
+    "learning_rate": [0.01, 0.05, 0.1],
+    "subsample": [0.6, 0.8, 1.0],
+    "colsample_bytree": [0.6, 0.8, 1.0]
+}
+
+RISK_WEIGHTING = {
+    "low": 1.0,
+    "medium": 2.0,
+    "high": 3.0
+}
+
+USE_GRID_SEARCH = True  
+CV_FOLDS = 5            
+SCORING_METRIC = "f1_weighted"  

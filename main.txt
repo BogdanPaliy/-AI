@@ -1,0 +1,43 @@
+main.py
+
+import argparse
+from scripts.train_model import main as train_model_main
+from scripts.evaluate_model import main as evaluate_model_main
+from src.utils import helpers
+
+MODEL_PATH = "models/confidential_classifier.pkl"
+VECTORIZER_PATH = "models/confidential_classifier_vectorizer.pkl"
+
+def classify_text(text):
+    try:
+        model = helpers.load_model(MODEL_PATH)
+        vectorizer = helpers.load_model(VECTORIZER_PATH)
+    except Exception as e:
+        print(f"[❌]: {e}")
+        return
+
+    cleaned = helpers.clean_text(text)
+    vectorized = vectorizer.transform([cleaned])
+
+    prediction = model.predict(vectorized)[0]
+    print(f"[✅] Т: {prediction}")
+
+def main():
+    parser = argparse.ArgumentParser (description=" ")
+    parser.add_argument("--train", action="store_true")
+    parser.add_argument("--evaluate", action="store_true")
+    parser.add_argument("--classify", type=str")
+
+    args = parser.parse_args()
+
+    if args.train:
+        train_model_main()
+    elif args.evaluate:
+        evaluate_model_main()
+    elif args.classify:
+        classify_text(args.classify)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

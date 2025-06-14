@@ -1,0 +1,61 @@
+src/data_processing/data_cleaner.py
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+import joblib
+import os
+from config import settings
+
+label_encoders = {}
+scaler = None
+
+def clean_data(df, is_training=True):
+    """
+    :param df: pandas DataFrame
+    :param is_training: 
+    :return: 
+    """
+
+    df = df.copy()
+
+      df.fillna(method='ffill', inplace=True) .fillna(0) 
+
+     y = None
+    if 'label' in df.columns:
+        y = df['label']
+        df.drop('label', axis=1, inplace=True)
+
+       for col in df.select_dtypes(include=['object']).columns:
+        if is_training:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col])
+            label_encoders[col] = le
+        else:
+            le = label_encoders.get(col)
+            if le:
+                df[col] = le.transform(df[col])
+            else:
+                raise ValueError(f": {col}")
+
+    global scaler
+    if is_training:
+        scaler = StandardScaler()
+        df[df.columns] = scaler.fit_transform(df)
+    else:
+        df[df.columns] = scaler.transform(df)
+
+    return df, y
+
+def save_transformers():
+    """
+    joblib.dump(label_encoders, settings.ENCODERS_PATH)
+    joblib.dump(scaler, settings.SCALER_PATH)
+    print("[INFO] Е.")
+
+def load_transformers():
+    """
+    global label_encoders, scaler
+    label_encoders = joblib.load(settings.ENCODERS_PATH)
+    scaler = joblib.load(settings.SCALER_PATH)
+    print("[INFO].")

@@ -1,0 +1,52 @@
+src/analysis/severity_classifier.py
+
+import pandas as pd
+import joblib
+import os
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+
+class SeverityClassifier:
+    def __init__(self, model_path="models/severity_classifier.pkl"):
+        self.model_path = model_path
+        self.pipeline = Pipeline([
+            ("tfidf", TfidfVectorizer(max_features=5000, ngram_range=(1, 2))),
+            ("clf", RandomForestClassifier(n_estimators=100, class_weight="balanced", random_state=42))
+        ])
+
+    def train(self, data_path):
+        print("[INFO]")
+        df = pd.read_csv(data_path)
+
+        if 'text' not in df.columns or 'severity' not in df.columns:
+            raise ValueError("'text' і 'severity' у датасеті.")
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            df['text'], df['severity'], test_size=0.2, random_state=42, stratify=df['severity']
+        )
+
+        print("[INFO]")
+        self.pipeline.fit(X_train, y_train)
+
+        print("[INFO]")
+        y_pred = self.pipeline.predict(X_test)
+        print(":\n", confusion_matrix(y_test, y_pred))
+        print(":\n", classification_report(y_test, y_pred))
+
+        os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+        joblib.dump(self.pipeline, self.model_path)
+        print(f"[INFO]{self.model_path}")
+
+    def load_model(self):
+        if not os.path.exists(self.model_path):
+            raise FileNotFoundError(f"{self.model_path}")
+        self.pipeline = joblib.load(self.model_path)
+        print(f"[INFO]{self.model_path}")
+
+    def predict_severity(self, texts):
+        if not isinstance(texts, list):
+            texts = [texts]
+        return self.pipeline.predict(texts)

@@ -1,0 +1,41 @@
+src/modeling/feature_selector.py
+
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectKBest, chi2
+
+class FeatureSelector:
+    def __init__(self, max_features=5000, k_best=1000):
+        self.vectorizer = TfidfVectorizer(max_features=max_features, ngram_range=(1, 2))
+        self.selector = SelectKBest(chi2, k=k_best)
+        self.fitted = False
+
+    def fit_transform(self, texts, labels):
+        """
+        
+        print("[INFO]...")
+        X_tfidf = self.vectorizer.fit_transform(texts)
+
+        print("[INFO] (chi²)...")
+        X_selected = self.selector.fit_transform(X_tfidf, labels)
+
+        self.fitted = True
+        return X_selected
+
+    def transform(self, texts):
+        """
+        
+        if not self.fitted:
+            raise RuntimeError
+        X_tfidf = self.vectorizer.transform(texts)
+        return self.selector.transform(X_tfidf)
+
+    def get_selected_feature_names(self):
+        """
+        
+        if not self.fitted:
+            raise RuntimeError
+
+        feature_names = self.vectorizer.get_feature_names_out()
+        selected_mask = self.selector.get_support()
+        return feature_names[selected_mask]
